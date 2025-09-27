@@ -18,3 +18,4 @@ langchain-chroma
 pymysql
 qdrant-client
 langchain-qdrant
+python-dotenv
