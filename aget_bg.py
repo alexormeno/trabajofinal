@@ -129,3 +129,35 @@ def load_session_history(session_id: str) -> ChatMessageHistory:
 
     return chat_history
 
+def load_history_chat(session_id: str) -> ChatMessageHistory:
+    db = next(get_db())
+    messages = []
+    try:
+        # Recuperar la sesión
+        sesion = db.query(Session).filter(Session.session_id == session_id).first()
+        if sesion:
+            # Traer últimos 10 mensajes ordenados por fecha
+            messages_query = (
+                db.query(Message)
+                .filter(Message.session_id == sesion.id)
+                .order_by(Message.created_at.desc())
+                .limit(10)
+                .all()
+            )
+            # Como vienen en orden descendente, invertirlos
+            messages_query = list(reversed(messages_query))
+
+            messages = []
+            for item in messages_query:
+                role = item.role
+                message = item.content
+
+                messages.append({'role':role, 'message':message })
+
+    except SQLAlchemyError as e:
+        print(f"Error al cargar historial: {e}")
+    finally:
+        db.close()
+
+    return messages
+

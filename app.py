@@ -8,6 +8,8 @@ from agent_ia import answer_rag_chain
 import uuid
 
 import re
+from aget_bg import load_history_chat
+
 
 
 def render_message(text, style):
@@ -124,6 +126,7 @@ app.layout = dbc.Container([
 
         dcc.Store(id='chat-history', data=[]),
         dcc.Store(id='scroll-dummy', data=[])
+
     ], style={
         'maxWidth': '100%',
         'margin': '0 auto',
@@ -141,11 +144,14 @@ app.layout = dbc.Container([
     Input('user-input', 'n_submit'),
     State('user-input', 'value'),
     State('chat-history', 'data'),
-    prevent_initial_call=True
+    #prevent_initial_call=True
 )
 def update_chat(n_clicks, n_submit, user_input, chat_history_f):
     if not user_input:
-        raise dash.exceptions.PreventUpdate
+        client_id = request.cookies.get('client_id')
+        historial = load_history_chat('f314873f-9c40-4c41-9368-4eb2bb234f6e')
+
+        return historial, ""#dash.exceptions.PreventUpdate
 
     #respuesta = f"Esta es una respuesta generada para: {user_input}"
     #respuesta = interactuar(user_input)
@@ -164,9 +170,10 @@ def update_chat(n_clicks, n_submit, user_input, chat_history_f):
         #save_message(client_id, 'ai', respuesta)
 
         
-        chat_history_f.append({'role': 'user', 'message': user_input})
+        chat_history_f.append({'role': 'human', 'message': user_input})
         chat_history_f.append({'role': 'ai', 'message': respuesta})
         return chat_history_f, ""
+
 
     return chat_history_f, ""
 
@@ -196,7 +203,7 @@ def render_chat(chat_history):
             "boxShadow": "0 2px 6px rgba(0,0,0,0.05)",
         }
         
-        if role == 'user':
+        if role == 'human':
             # Estilos y alineación para el usuario
             style["marginLeft"] = "auto"
             style["backgroundColor"] = "#cce5ff"
