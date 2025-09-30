@@ -25,10 +25,16 @@ def render_message(text, style):
                 children.append(
                     html.Iframe(
                         src=url,
-                        width="560",
+                        #width="560",
+                        width="60%",
                         height="315",
-                        style={"border": "none", "marginTop": "10px"}
+                        style={
+                            "border": "none",
+                            "marginTop": "10px",
+                            "borderRadius": "15px"  # bordes redondeados
+                        }
                     )
+
                 )
         else:
             # Si hay texto, lo mostramos como Markdown
@@ -59,65 +65,6 @@ def add_client_id_cookie(response):
         new_uuid = str(uuid.uuid4())
         response.set_cookie('client_id', new_uuid, max_age=365*24*60*60)  # Cookie válida por 1 año
     return response
-
-"""
-app.layout = dbc.Container([
-    dbc.Navbar(
-        dbc.Container([
-            dbc.Row([
-                dbc.Col(html.H2("Asistente Virtual Informática II", className="text-center w-100 mb-0", style={
-                    "fontWeight": "600",
-                    "color": "#333",
-                }))
-            ], justify="center", className="w-100")
-        ]),
-        color="#e9ecef",
-        dark=False,
-        className="mb-4 shadow-sm",
-        style={"padding": "10px"}
-    ),
-
-    html.Div([
-        html.Div(id='chat-container', children=[], style={
-            'border': '1px solid #dee2e6',
-            'padding': '20px',
-            'height': '60vh',
-            'overflowY': 'scroll',
-            'backgroundColor': '#ffffff',
-            'borderRadius': '10px',
-            'boxShadow': '0 2px 8px rgba(0, 0, 0, 0.05)',
-        }),
-        dcc.Loading(
-            dbc.Row([
-                dbc.Col([
-                    dcc.Input(
-                        id='user-input',
-                        type='text',
-                        placeholder='Escribe tu mensaje...',
-                        className='form-control',
-                        debounce=True,
-                        n_submit=0
-                    )
-                ], width=10),
-                dbc.Col([
-                    dbc.Button('Enviar', id='send-button', color='primary', className='w-100')
-                ], width=2),
-            ], className='mt-3'),
-            
-        ),
-
-
-        dcc.Store(id='chat-history', data=[])
-    ], style={
-        'maxWidth': '800px',
-        'margin': '0 auto',
-        'padding': '20px',
-        'backgroundColor': '#f8f9fa',
-        'borderRadius': '12px',
-        'boxShadow': '0 6px 16px rgba(0, 0, 0, 0.06)'
-    })
-], fluid=True)
-"""
 
 
 app.layout = dbc.Container([
