@@ -7,6 +7,39 @@ from dash import html, dcc, Input, Output, State, ctx
 from agent_ia import answer_rag_chain
 import uuid
 
+import re
+
+
+def render_message(text, style):
+    # Dividir el texto por bloques de iframe
+    parts = re.split(r'(<iframe.*?</iframe>)', text, flags=re.DOTALL)
+
+    children = []
+
+    for part in parts:
+        if "<iframe" in part:
+            # Extraer el src del iframe
+            match = re.search(r'src="([^"]+)"', part)
+            if match:
+                url = match.group(1)
+                children.append(
+                    html.Iframe(
+                        src=url,
+                        width="560",
+                        height="315",
+                        style={"border": "none", "marginTop": "10px"}
+                    )
+                )
+        else:
+            # Si hay texto, lo mostramos como Markdown
+            if part.strip():
+                children.append(
+                    dcc.Markdown(part, style={'whiteSpace': 'pre-wrap'})
+                )
+
+    return dbc.Card(html.Div(children), style=style, body=True)
+
+    
 
 server = Flask(__name__)
 
@@ -27,7 +60,7 @@ def add_client_id_cookie(response):
         response.set_cookie('client_id', new_uuid, max_age=365*24*60*60)  # Cookie válida por 1 año
     return response
 
-
+"""
 app.layout = dbc.Container([
     dbc.Navbar(
         dbc.Container([
@@ -77,6 +110,75 @@ app.layout = dbc.Container([
         dcc.Store(id='chat-history', data=[])
     ], style={
         'maxWidth': '800px',
+        'margin': '0 auto',
+        'padding': '20px',
+        'backgroundColor': '#f8f9fa',
+        'borderRadius': '12px',
+        'boxShadow': '0 6px 16px rgba(0, 0, 0, 0.06)'
+    })
+], fluid=True)
+"""
+
+
+app.layout = dbc.Container([
+    # NAVBAR
+    dbc.Navbar(
+        dbc.Container([
+            dbc.Row([
+                dbc.Col(
+                    html.H2(
+                        "Asistente Virtual Informática II",
+                        className="text-center mb-0",
+                        style={"fontWeight": "600", "color": "#333"}
+                    ),
+                    xs=12, sm=12, md=12, lg=12, xl=12  # ocupa todo el ancho en cualquier dispositivo
+                )
+            ], justify="center", className="w-100")
+        ]),
+        color="#e9ecef",
+        dark=False,
+        className="mb-4 shadow-sm",
+        style={"padding": "10px"}
+    ),
+
+    # CONTENEDOR PRINCIPAL
+    html.Div([
+        # CHAT CONTAINER
+        html.Div(id='chat-container', children=[], style={
+            'border': '1px solid #dee2e6',
+            'padding': '20px',
+            'height': '60vh',
+            'overflowY': 'auto',
+            'backgroundColor': '#ffffff',
+            'borderRadius': '10px',
+            'boxShadow': '0 2px 8px rgba(0, 0, 0, 0.05)',
+        }),
+
+        # INPUT Y BOTÓN
+        dcc.Loading(
+            dbc.Row([
+                dbc.Col([
+                    dcc.Input(
+                        id='user-input',
+                        type='text',
+                        placeholder='Escribe tu mensaje...',
+                        className='form-control',
+                        debounce=True,
+                        n_submit=0,
+                        style={'width': '100%'}  # asegura que se adapte al contenedor
+                    )
+                ], xs=9, sm=10, md=10, lg=10, xl=10),
+
+                dbc.Col([
+                    dbc.Button('Enviar', id='send-button', color='primary', className='w-100')
+                ], xs=3, sm=2, md=2, lg=2, xl=2),
+            ], className='mt-3 g-2'),  # g-2 agrega espacio entre columnas
+        ),
+
+        dcc.Store(id='chat-history', data=[]),
+        dcc.Store(id='scroll-dummy', data=[])
+    ], style={
+        'maxWidth': '100%',
         'margin': '0 auto',
         'padding': '20px',
         'backgroundColor': '#f8f9fa',
@@ -161,11 +263,29 @@ def render_chat(chat_history):
             style["marginLeft"] = 0
             style["backgroundColor"] = "#e2e3e5"
             style["color"] = "#212529"
-            card = dbc.Card(dcc.Markdown(text, style={'whiteSpace': 'pre-wrap'}), style=style, body=True)
+            #card = dbc.Card(dcc.Markdown(text, style={'whiteSpace': 'pre-wrap'}), style=style, body=True)
+            card = render_message(text, style)
             avatar = html.Img(src=img_ai_path, style={"height": "40px", "borderRadius": "50%", "marginRight": "10px"})
             messages.append(html.Div([avatar, card], style={'display': 'flex', 'alignItems': 'start', 'justifyContent': 'flex-start'}))
         
     return messages
+
+# ⚡ Auto-scroll con JS en cliente
+app.clientside_callback(
+    """
+    function(children) {
+        var chatBox = document.getElementById("chat-container");
+        if (chatBox){
+            chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
+        }
+        return "";
+    }
+    """,
+    Output("scroll-dummy", "data"),   # usamos un store dummy
+    Input("chat-container", "children")
+)
+
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0",

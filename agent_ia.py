@@ -79,7 +79,7 @@ vector_store = QdrantVectorStore(
 retriever_qdrant = vector_store.as_retriever(
     search_type="similarity",
     search_kwargs={"k": k_documentos}
-        )
+)
 
 
 # CREAR MODELO LLM
@@ -89,7 +89,7 @@ llm = ChatOpenAI(
 )
 
 # GUARDAR HISTORIAL
-store = {}
+#store = {}
 
 #def get_session_history(session_id : str) -> RunnableWithMessageHistory:
 #    if session_id not in store:
@@ -108,7 +108,7 @@ contextualize_q_system_ptompt = (
     #"Si no está en el historial de chat o en el contexto. No respondas la preguna"
     #"Además responde de manera profesional a la pregunta del usuario"
     "Tu tarea es reformular la última pregunta del usuario para que sea una pregunta independiente, "
-    "considerando el historial de chat. Esto permitirá que la pregunta sea comprendida sin el "
+    "considerando el historial de chat. Esto permitirá que la pregunta sea comprendida sin el"
     "historial de conversación previo. Si la pregunta del usuario no requiere contexto, devuélvela tal cual."
     "Asegúrate de que la nueva pregunta esté completa y sea clara."
 )
@@ -167,9 +167,13 @@ agent_prompt = ChatPromptTemplate.from_messages(
             * **Cuando utilices 'retriever_tools' devuelve la pagina de donde sacaste el contenido solo si existe la pagina o si esta contenida en el indice del manual.
             * **Si la pregunta del usuario requiere información que no está en tu base de conocimiento local, utiliza la herramienta 'tavily_search' para realizar una búsqueda en internet.**
             * **Cuando hagas una búsqueda en internet y devuelvas resultados, debes informar al usuario que el contenido de esos enlaces es externo al material de la cátedra, por lo cual no te haces responsable de su contenido.**
-            
+            * **Cuando el contenido no sea encontrado en retriever_tool responde que no tienes informacion para responder acerca del tema
+            * **Cuando contengas links de videos de youtube, agrega en markdown un iframe donde visualizar el video
+                  
             **Restricciones Clave:**
-            * **Si el contenido de la pregunta NO se refiere a informática, a tu base de conocimiento o no requiere una búsqueda externa, no utilices ninguna herramienta y responde que no puedes contestar sobre ese tema.**
+            * **Si el contenido de la pregunta NO se refiere a tu base de conocimiento, no utilices ninguna herramienta y responde que no puedes contestar sobre ese tema.**
+            * **Cuando se te pida contenido externo, primero verifica que exista en un base de conocimiento y luego realiza la busqueda
+            * **Si la busqueda que se va a realizar en tavility_search, realizala siempre y cuando el contenido exista en retriever_tools
             * **No inventes ni alucines respuestas.** Si no tienes información suficiente para responder, dilo de manera cortés.
             * **Responde de forma concisa y directa.** Evita divagaciones.
             * **Asegúrate de que tus respuestas sean relevantes para la pregunta del usuario.**
