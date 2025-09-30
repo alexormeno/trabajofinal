@@ -149,7 +149,7 @@ app.layout = dbc.Container([
 def update_chat(n_clicks, n_submit, user_input, chat_history_f):
     if not user_input:
         client_id = request.cookies.get('client_id')
-        historial = load_history_chat('f314873f-9c40-4c41-9368-4eb2bb234f6e')
+        historial = load_history_chat(client_id)
 
         return historial, ""#dash.exceptions.PreventUpdate
 
